@@ -1,0 +1,14 @@
+{
+  "data": [
+    {
+      "id": "5cd8ab3d-31d1-4cf5-af0b-0fdb7980809a",
+      "email": "officer@example.gov",
+      "username": "officer1",
+      "status": "Active",
+      "externalId": "EMP12345",
+      "badgeNumber": "A1001",
+      "role": "User"
+    }
+  ],
+  "count": 100
+}
