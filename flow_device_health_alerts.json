@@ -1,0 +1,58 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2019-05-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "triggers": {
+      "Recurrence": {
+        "type": "Recurrence",
+        "recurrence": {
+          "frequency": "Week",
+          "interval": 1,
+          "startTime": "2025-08-12T03:00:00Z"
+        }
+      }
+    },
+    "actions": {
+      "Get_Devices_Not_Docked": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_custom-axon-partnerapi",
+            "connectionName": "shared_custom-axon-partnerapi",
+            "operationId": "ListDevices"
+          },
+          "parameters": {
+            "agencyId": "@parameters('agencyId')",
+            "notDockedInDays": 7,
+            "limit": 100,
+            "offset": 0
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {}
+      },
+      "Create_Alerts_in_Dataverse": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connectionName": "shared_commondataserviceforapps"
+          },
+          "method": "post",
+          "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('environmentId')))}//tables/axon_device_alerts/Items",
+          "body": {
+            "records": "@body('Get_Devices_Not_Docked')"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {
+          "Get_Devices_Not_Docked": [
+            "Succeeded"
+          ]
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "kind": "Stateful"
+}

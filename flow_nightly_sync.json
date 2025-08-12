@@ -1,0 +1,97 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2019-05-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "triggers": {
+      "Recurrence": {
+        "type": "Recurrence",
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "startTime": "2025-08-12T02:00:00Z"
+        }
+      }
+    },
+    "actions": {
+      "List_Users": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_custom-axon-partnerapi",
+            "connectionName": "shared_custom-axon-partnerapi",
+            "operationId": "ListUsers"
+          },
+          "parameters": {
+            "agencyId": "@parameters('agencyId')",
+            "limit": 500,
+            "offset": 0
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {}
+      },
+      "List_Devices": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_custom-axon-partnerapi",
+            "connectionName": "shared_custom-axon-partnerapi",
+            "operationId": "ListDevices"
+          },
+          "parameters": {
+            "agencyId": "@parameters('agencyId')",
+            "limit": 100,
+            "offset": 0
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {
+          "List_Users": [
+            "Succeeded"
+          ]
+        }
+      },
+      "Upsert_Users_to_Dataverse": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connectionName": "shared_commondataserviceforapps"
+          },
+          "method": "post",
+          "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('environmentId')))}//tables/axon_users/Items",
+          "body": {
+            "records": "@body('List_Users')"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {
+          "List_Devices": [
+            "Succeeded"
+          ]
+        }
+      },
+      "Upsert_Devices_to_Dataverse": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connectionName": "shared_commondataserviceforapps"
+          },
+          "method": "post",
+          "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('environmentId')))}//tables/axon_devices/Items",
+          "body": {
+            "records": "@body('List_Devices')"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {
+          "Upsert_Users_to_Dataverse": [
+            "Succeeded"
+          ]
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "kind": "Stateful"
+}

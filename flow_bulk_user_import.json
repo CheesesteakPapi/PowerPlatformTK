@@ -1,0 +1,100 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2019-05-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "triggers": {
+      "When_a_file_is_created_in_SharePoint": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connectionName": "shared_sharepointonline"
+          },
+          "method": "get",
+          "path": "/datasets/default/triggers/onnewfile",
+          "queries": {
+            "folderId": "AxonUserCSV"
+          }
+        }
+      }
+    },
+    "actions": {
+      "Import_Users": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_custom-axon-partnerapi",
+            "connectionName": "shared_custom-axon-partnerapi",
+            "operationId": "ImportUsers"
+          },
+          "parameters": {
+            "agencyId": "@parameters('agencyId')",
+            "synchronize": false,
+            "synchronizeEvidenceGroups": false
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {}
+      },
+      "Initialize_page": {
+        "type": "InitializeVariable",
+        "inputs": {
+          "variables": [
+            {
+              "name": "page",
+              "type": "integer",
+              "value": 0
+            }
+          ]
+        },
+        "runAfter": {
+          "Import_Users": [
+            "Succeeded"
+          ]
+        }
+      },
+      "Get_Job_Results": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_custom-axon-partnerapi",
+            "connectionName": "shared_custom-axon-partnerapi",
+            "operationId": "GetImportJobResults"
+          },
+          "parameters": {
+            "agencyId": "@parameters('agencyId')",
+            "jobId": "@body('Import_Users')?['jobId']",
+            "page": "@variables('page')"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {
+          "Initialize_page": [
+            "Succeeded"
+          ]
+        }
+      },
+      "Write_Results_to_Dataverse": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connectionName": "shared_commondataserviceforapps"
+          },
+          "method": "post",
+          "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('environmentId')))}//tables/axon_job_results/Items",
+          "body": {
+            "records": "@body('Get_Job_Results')"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "runAfter": {
+          "Get_Job_Results": [
+            "Succeeded"
+          ]
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "kind": "Stateful"
+}
