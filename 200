@@ -12,3 +12,51 @@
   ],
   "count": 100
 }
+
+{
+  "id": "5cd8ab3d-31d1-4cf5-af0b-0fdb7980809a",
+  "email": "officer@example.gov",
+  "username": "officer1",
+  "status": "Active",
+  "externalId": "EMP12345",
+  "badgeNumber": "A1001",
+  "role": "User"
+}
+
+{
+  "jobId": "a30735a3-aad9-4da5-9523-24741f896b31",
+  "status": "Queued",
+  "submittedAt": "2025-08-12T12:00:00Z"
+}
+
+{
+  "data": [
+    {
+      "userId": "5cd8ab3d-31d1-4cf5-af0b-0fdb7980809a",
+      "action": "Updated",
+      "errorCode": null
+    },
+    {
+      "userId": "7ff0a1b2-2222-4bde-aaaa-111111111111",
+      "action": "Skipped",
+      "errorCode": "DuplicateEmail"
+    }
+  ],
+  "page": 0,
+  "pageSize": 500
+}
+
+{
+  "data": [
+    {
+      "id": "d1234567-89ab-4cde-8123-456789abcdef",
+      "model": "taser_body_cam_3",
+      "serial": "X7032224F",
+      "status2": "assigned",
+      "ownerId": "5cd8ab3d-31d1-4cf5-af0b-0fdb7980809a",
+      "homeId": "h-001",
+      "lastUpload": "2025-08-10T12:34:56Z"
+    }
+  ],
+  "count": 100
+}
